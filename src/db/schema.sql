@@ -51,3 +51,25 @@ CREATE TABLE activity_log (
   new_state JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Stored function to atomically claim pending captures using row locking
+CREATE OR REPLACE FUNCTION claim_pending_captures(limit_count INT)
+RETURNS SETOF captures AS $$
+BEGIN
+  RETURN QUERY
+  WITH selected AS (
+    SELECT id
+    FROM captures
+    WHERE status = 'pending'
+    ORDER BY created_at ASC
+    LIMIT limit_count
+    FOR UPDATE SKIP LOCKED
+  )
+  UPDATE captures c
+  SET status = 'processing'
+  FROM selected s
+  WHERE c.id = s.id
+  RETURNING c.*;
+END;
+$$ LANGUAGE plpgsql;
+

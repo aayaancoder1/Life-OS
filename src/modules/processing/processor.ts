@@ -3,13 +3,9 @@ import { parseCaptureWithAI } from '../intelligence/llm.js';
 import { createGoogleCalendarEvent } from '../action/calendar.js';
 
 export async function processPendingCaptures(): Promise<number> {
-  // Fetch pending captures
+  // Fetch pending captures using the atomic stored function (claim_pending_captures)
   const { data: captures, error: fetchError } = await supabase
-    .from('captures')
-    .select('*')
-    .eq('status', 'pending')
-    .order('created_at', { ascending: true })
-    .limit(10);
+    .rpc('claim_pending_captures', { limit_count: 10 });
 
   if (fetchError) {
     console.error('Error fetching pending captures:', fetchError);
@@ -25,12 +21,6 @@ export async function processPendingCaptures(): Promise<number> {
 
   for (const capture of captures) {
     try {
-      // Mark capture as processing
-      await supabase
-        .from('captures')
-        .update({ status: 'processing' })
-        .eq('id', capture.id);
-
       console.log(`Analyzing capture ${capture.id} with LLM...`);
       // Parse using LLM
       const structuredItem = await parseCaptureWithAI(
