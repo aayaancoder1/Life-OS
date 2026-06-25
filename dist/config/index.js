@@ -5,7 +5,7 @@ const envSchema = z.object({
     PORT: z.string().default('3000'),
     SUPABASE_URL: z.string(),
     SUPABASE_SERVICE_ROLE_KEY: z.string(),
-    OPENAI_API_KEY: z.string(),
+    GEMINI_API_KEY: z.string(),
     TELEGRAM_BOT_TOKEN: z.string(),
     GOOGLE_CLIENT_ID: z.string().optional(),
     GOOGLE_CLIENT_SECRET: z.string().optional(),
